@@ -71,7 +71,7 @@ border: 2px solid rgb(255, 92, 95);
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="label_2">
+         <widget class="QLabel" name="labelPlayTime">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -91,7 +91,7 @@ border: 2px solid rgb(255, 92, 95);
            </size>
           </property>
           <property name="text">
-           <string>TextLabel</string>
+           <string>00:00:00 / 00:00:00</string>
           </property>
          </widget>
         </item>

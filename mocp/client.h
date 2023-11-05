@@ -44,6 +44,10 @@
     char *get_str_from_srv (int srv_sock);
     int getTime();
     bool isStop();
+    int getCurrentTime(int serv_sock);
+    void set_mixer (int serv_sock, int val);
+    int get_mixer (int serv_sock);
+
 
 #ifdef __cplusplus
 }

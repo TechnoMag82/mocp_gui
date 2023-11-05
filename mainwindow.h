@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QDebug>
+#include <QThread>
 
 #include "dbmodule.h"
 #include "playmanager.h"
@@ -23,11 +24,13 @@ class MainWindow : public QMainWindow
         Ui::MainWindow *ui;
         DbModule *dbModule = nullptr;
         PlayManager *playManager = nullptr;
+        QThread thread;
 
     private slots:
         void tooglePlayPause();
         void play();
         void stop();
         void serverOnLine(bool value);
+        void displayData(PlayData value);
 };
 #endif // MAINWINDOW_H

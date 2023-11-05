@@ -442,3 +442,21 @@ int getTime() {
 bool isStop() {
     return curr_file.state == STATE_UNDEFINED || curr_file.state == STATE_STOP;
 }
+
+int getCurrentTime(int serv_sock) {
+    send_int(serv_sock, CMD_GET_CTIME);
+    return get_data_int (serv_sock);
+}
+
+void set_mixer (int serv_sock, int val)
+{
+    val = CLAMP(0, val, 100);
+    send_int (serv_sock, CMD_SET_MIXER);
+    send_int (serv_sock, val);
+}
+
+int get_mixer (int serv_sock)
+{
+    send_int (serv_sock, CMD_GET_MIXER);
+    return get_data_int (serv_sock);
+}

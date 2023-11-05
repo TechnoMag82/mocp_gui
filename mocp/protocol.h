@@ -84,6 +84,9 @@ struct tag_ev_response
 #define CMD_PAUSE	0x05 /* pause */
 #define CMD_UNPAUSE	0x06 /* unpause */
 
+#define CMD_GET_MIXER	0x1a /* get the volume level */
+#define CMD_SET_MIXER	0x1b /* set the volume level */
+
 #define CMD_GET_STATE	0x13 /* get the state */
 #define CMD_GET_CTIME	0x0d /* get the current song time */
 #define CMD_GET_SNAME	0x0f /* get the stream file name */
