@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>MOC Gui</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
@@ -152,7 +152,7 @@ border: 2px solid rgb(255, 92, 95);
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <widget class="QListView" name="listView_2">
+         <widget class="QTableView" name="tableViewGenre">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
             <horstretch>0</horstretch>
@@ -168,7 +168,7 @@ border: 2px solid rgb(255, 92, 95);
          </widget>
         </item>
         <item>
-         <widget class="QListView" name="listView_3">
+         <widget class="QTableView" name="tableViewArtist">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
             <horstretch>0</horstretch>

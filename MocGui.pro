@@ -1,4 +1,4 @@
-QT       += core gui
+QT       += core gui sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets sql
 
@@ -16,9 +16,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    appsettingsmanager.cpp \
     dbmodule.cpp \
+    libscanner.cpp \
     main.cpp \
     mainwindow.cpp \
+    tagsreader.cpp \
     mocp/client.c \
     mocp/common.c \
     mocp/files.c \
@@ -30,8 +33,11 @@ SOURCES += \
 
 
 HEADERS += \
+    appsettingsmanager.h \
     dbmodule.h \
+    libscanner.h \
     mainwindow.h \
+    tagsreader.h \
     mocp/client.h \
     mocp/protocol.h \
     mocp/common.h \
@@ -43,6 +49,8 @@ HEADERS += \
 
 FORMS += \
     mainwindow.ui
+
+LIBS += /usr/lib/x86_64-linux-gnu/libmediainfo.so
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
