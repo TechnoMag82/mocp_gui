@@ -21,6 +21,7 @@ SOURCES += \
     libscanner.cpp \
     main.cpp \
     mainwindow.cpp \
+    models/playlistmodel.cpp \
     tagsreader.cpp \
     mocp/client.c \
     mocp/common.c \
@@ -29,7 +30,8 @@ SOURCES += \
     mocp/protocol.c \
     mocp/options.c \
     mocp/playlist.c \
-    playmanager.cpp
+    playmanager.cpp \
+    utils.cpp
 
 
 HEADERS += \
@@ -37,6 +39,8 @@ HEADERS += \
     dbmodule.h \
     libscanner.h \
     mainwindow.h \
+    models/playlistitem.h \
+    models/playlistmodel.h \
     tagsreader.h \
     mocp/client.h \
     mocp/protocol.h \
@@ -56,3 +60,6 @@ LIBS += /usr/lib/x86_64-linux-gnu/libmediainfo.so
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+RESOURCES += \
+    appresources.qrc

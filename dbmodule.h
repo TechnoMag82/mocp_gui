@@ -6,6 +6,10 @@
 #include <QString>
 #include <QSqlTableModel>
 
+#include "models/playlistmodel.h"
+#include "models/playlistitem.h"
+
+
 class DbModule
 {
     public:
@@ -23,14 +27,18 @@ class DbModule
         void clearTable();
 
         QString getSelectedGenre(int row);
+        QString getSelectedArtist(int row);
+        PlaylistItem getPlayListItem(int row);
 
-        QSqlQueryModel * getArtistsByGenre(QString genre);
+        PlaylistModel * getPlaylist(QString genre = "", QString artist = "");
+        QSqlQueryModel * getArtistsByGenre(QString genre = "");
         QSqlQueryModel * getGenres();
 
     private:
         QSqlDatabase db;
         QSqlQueryModel *modelGenre = nullptr;
         QSqlQueryModel *modelArtists = nullptr;
+        PlaylistModel *modelPlaylist = nullptr;
 
         void createDB();
 };

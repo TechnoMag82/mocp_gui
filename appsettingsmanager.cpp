@@ -2,7 +2,7 @@
 
 AppSettingsManager::AppSettingsManager()
 {
-    settings = new QSettings("technomag", "mocgui");
+    settings = new QSettings("TechnoMag", "mocgui");
 }
 
 AppSettingsManager::~AppSettingsManager()

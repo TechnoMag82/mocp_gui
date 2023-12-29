@@ -53,15 +53,23 @@ void PlayManager::togglePlayPause()
 
 void PlayManager::play(char *song)
 {
-    if (socket != -1 && getFileState() == 0x02 /*STATE_STOP*/) {
+    if (socket != -1 /*&& getFileState() == 0x02*/ /*STATE_STOP*/) {
         interface_cmdline_playit(socket,  song);
     }
 }
 
-void PlayManager::stop()
+void PlayManager::stop(bool byUser)
 {
     if (socket != -1) {
+        stopByUser = byUser;
         stopPlay(socket);
+    }
+}
+
+void PlayManager::goToTime(int time)
+{
+    if (socket != -1) {
+        jump_to(socket, time);
     }
 }
 
@@ -119,9 +127,16 @@ void PlayManager::dataChanged()
         playData.progress = getCurrentTime(socket);
         playData.volume = getVolume();
         playData.totalTime = getTime();
-        playData.playTime = QDateTime::fromTime_t(playData.progress).toUTC().toString("hh:mm:ss") +
-                " / " + QDateTime::fromTime_t(playData.totalTime).toUTC().toString("hh:mm:ss");
+        if (playData.totalTime > -1) {
+            playData.playTime = QDateTime::fromTime_t(playData.progress).toUTC().toString("hh:mm:ss / ") +
+                QDateTime::fromTime_t(playData.totalTime).toUTC().toString("hh:mm:ss");
+        } else {
+            playData.playTime = "00:00:00 / 00:00:00";
+        }
         emit playDataChanged(playData);
+        if (!stopByUser && isStop()) {
+            emit songIsEnd();
+        }
 //    }
 }
 

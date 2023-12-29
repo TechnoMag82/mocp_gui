@@ -47,6 +47,7 @@
     int getCurrentTime(int serv_sock);
     void set_mixer (int serv_sock, int val);
     int get_mixer (int serv_sock);
+    void jump_to (int serv_sock, const int sec);
 
 
 #ifdef __cplusplus

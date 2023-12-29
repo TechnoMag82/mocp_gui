@@ -46,7 +46,7 @@ border: 2px solid rgb(255, 92, 95);
          <enum>QLayout::SetMinimumSize</enum>
         </property>
         <item>
-         <widget class="QLabel" name="label">
+         <widget class="QLabel" name="labelArtist">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -66,7 +66,7 @@ border: 2px solid rgb(255, 92, 95);
            </size>
           </property>
           <property name="text">
-           <string>TextLabel</string>
+           <string>Nothing plays</string>
           </property>
          </widget>
         </item>
@@ -96,6 +96,13 @@ border: 2px solid rgb(255, 92, 95);
          </widget>
         </item>
        </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="labelTitle">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
@@ -165,6 +172,12 @@ border: 2px solid rgb(255, 92, 95);
             <height>16777215</height>
            </size>
           </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::SingleSelection</enum>
+          </property>
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
          </widget>
         </item>
         <item>
@@ -181,12 +194,25 @@ border: 2px solid rgb(255, 92, 95);
             <height>16777215</height>
            </size>
           </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::SingleSelection</enum>
+          </property>
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
          </widget>
         </item>
        </layout>
       </item>
       <item>
-       <widget class="QListView" name="listView"/>
+       <widget class="QTableView" name="tableViewPlaylist">
+        <property name="selectionMode">
+         <enum>QAbstractItemView::SingleSelection</enum>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>

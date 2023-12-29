@@ -13,6 +13,8 @@
 #include "libscanner.h"
 #include "appsettingsmanager.h"
 
+#include "models/playlistitem.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -38,27 +40,42 @@ class MainWindow : public QMainWindow
 
         QItemSelectionModel *selectionModelTableViewGenre = nullptr;
         QItemSelectionModel *selectionModelTableViewArtists = nullptr;
+        QItemSelectionModel *selectionModelTableViewPlaylist = nullptr;
+
+        QString selectedGenre = "";
+        QString selectedArtist = "";
+        bool selectionPlaylistChanged = true;
+        PlaylistItem currentPlayListItem;
 
         void selectGenres();
         void selectArtists(QString genre = "");
+        void selectPlaylist(QString genre = "", QString artist = "");
+
         void initGenreTableView();
-        void initAeristsTableView(QString genre = "");
-        void initPlaylist(QString genre = "", QString artist = "");
+        void initArtistsTableView(QString genre = "");
+        void initPlaylistTableView(QString genre = "", QString artist = "");
+        void setArtistAndTitleLabels(QString artist, QString title);
 
     private slots:
         void tooglePlayPause();
         void play();
         void stop();
+        void playNext();
         void serverOnLine(bool value);
         void displayData(PlayData value);
         void showScanProgress(QString value, int progress);
         void setupProgress(uint max);
         void scanFinished();
 
+        void sliderProgressReleasedByUser();
+        void sliderVolumeReleasedByUser();
+
         void changeTableViewGenreCurrentSelection(const QModelIndex &current,
                     const QModelIndex &previous);
 
         void changeTableViewArtistCurrentSelection(const QModelIndex &current,
                     const QModelIndex &previous);
+
+        void playlistDoubleClicked(const QModelIndex &current);
 };
 #endif // MAINWINDOW_H

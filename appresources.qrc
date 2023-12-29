@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/rating">
+        <file>images/no_rating.png</file>
+        <file>images/r1.png</file>
+        <file>images/r2.png</file>
+        <file>images/r3.png</file>
+        <file>images/r4.png</file>
+        <file>images/r5.png</file>
+    </qresource>
+</RCC>

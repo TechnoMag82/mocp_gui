@@ -26,6 +26,7 @@ class PlayManager : public QObject
     signals:
         void serverIsRunning(bool value);
         void playDataChanged(PlayData value);
+        void songIsEnd();
 
     private slots:
         void dataChanged();
@@ -44,7 +45,8 @@ class PlayManager : public QObject
 
         void togglePlayPause();
         void play(char *song);
-        void stop();
+        void stop(bool byUser=false);
+        void goToTime(int time);
 
         void getCurrentFileInformation();
 
@@ -60,6 +62,7 @@ class PlayManager : public QObject
         QTimer *timer;
         PlayData playData;
         QProcess *process = nullptr;
+        bool stopByUser = true;
 
 };
 

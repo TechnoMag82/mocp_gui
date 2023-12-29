@@ -83,6 +83,7 @@ struct tag_ev_response
 #define CMD_STOP	0x04 /* stop playing */
 #define CMD_PAUSE	0x05 /* pause */
 #define CMD_UNPAUSE	0x06 /* unpause */
+#define CMD_JUMP_TO	0x3a /* jumps to a some position in the current stream */
 
 #define CMD_GET_MIXER	0x1a /* get the volume level */
 #define CMD_SET_MIXER	0x1b /* set the volume level */

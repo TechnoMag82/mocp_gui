@@ -127,23 +127,23 @@ void *get_event_data (int serv_sock, const int type)
     switch (type) {
         case EV_PLIST_ADD:
         case EV_QUEUE_ADD:
-            info("recv_item_from_srv ()");
+//            info("recv_item_from_srv ()");
             return NULL;
 //            return recv_item_from_srv ();
         case EV_PLIST_DEL:
         case EV_QUEUE_DEL:
         case EV_STATUS_MSG:
         case EV_SRV_ERROR:
-            info("get_str_from_srv ()");
+//            info("get_str_from_srv ()");
             return get_str(serv_sock);
 //            return get_str_from_srv ();
         case EV_FILE_TAGS:
-            info("recv_tags_data_from_srv ()");
+//            info("recv_tags_data_from_srv ()");
 //            return NULL;
             return recv_tags_data_from_srv (serv_sock);
         case EV_PLIST_MOVE:
         case EV_QUEUE_MOVE:
-            info("recv_move_ev_data_from_srv ()");
+//            info("recv_move_ev_data_from_srv ()");
             return NULL;
 //            return recv_move_ev_data_from_srv ();
     }
@@ -459,4 +459,10 @@ int get_mixer (int serv_sock)
 {
     send_int (serv_sock, CMD_GET_MIXER);
     return get_data_int (serv_sock);
+}
+
+void jump_to (int serv_sock, const int sec)
+{
+    send_int (serv_sock, CMD_JUMP_TO);
+    send_int (serv_sock, sec);
 }

@@ -19,6 +19,8 @@ DbModule::~DbModule()
         delete modelArtists;
     if (modelGenre != nullptr)
         delete modelGenre;
+    if (modelPlaylist != nullptr)
+        delete modelPlaylist;
 }
 
 void DbModule::insertData(QString artist, QString album, QString title, QString genre, QString path, uint duration)
@@ -52,6 +54,50 @@ QString DbModule::getSelectedGenre(int row)
 {
     QSqlRecord record = modelGenre->record(row);
     return record.value("genre").toString();
+}
+
+QString DbModule::getSelectedArtist(int row)
+{
+    QSqlRecord record = modelArtists->record(row);
+    return record.value("artist").toString();
+}
+
+PlaylistItem DbModule::getPlayListItem(int row)
+{
+    PlaylistItem item;
+    QSqlRecord record = modelPlaylist->record(row);
+    item.artist = record.value("artist").toString();
+    item.title = record.value("title").toString();
+    item.path = record.value("path").toString();
+    item.time = record.value("time").toUInt();
+    item.row = row;
+    return item;
+}
+
+PlaylistModel *DbModule::getPlaylist(QString genre, QString artist)
+{
+    if (modelPlaylist == nullptr);
+        modelPlaylist = new PlaylistModel();
+    QSqlQuery query;
+    if (genre.isEmpty() && artist.isEmpty()) {
+        query.prepare("SELECT * FROM album_table");
+    } else if (artist.isEmpty() && !genre.isEmpty()) {
+        query.prepare("SELECT * FROM album_table WHERE genre=:strgenre");
+        query.bindValue(":strgenre", genre);
+    } else if (!artist.isEmpty() && genre.isEmpty()) {
+        query.prepare("SELECT * FROM album_table WHERE artist=:strartist");
+        query.bindValue(":strartist", artist);
+    } else if (!artist.isEmpty() && !genre.isEmpty()) {
+        query.prepare("SELECT * FROM album_table WHERE artist=:strartist AND genre=:strgenre");
+        query.bindValue(":strartist", artist);
+        query.bindValue(":strgenre", genre);
+    }
+    query.exec();
+    modelPlaylist->setQuery(query);
+    if (modelPlaylist->lastError().isValid()) {
+        qDebug() << modelPlaylist->lastError().text();
+    }
+    return modelPlaylist;
 }
 
 QSqlQueryModel * DbModule::getArtistsByGenre(QString genre)
@@ -102,9 +148,23 @@ void DbModule::createDB()
         qDebug() << "Create DB error: " << query.lastError().text();
     }
 
-    QString createUniqueIndex = "CREATE UNIQUE INDEX IF NOT EXISTS idx_path"
+    QString createIndex = "CREATE UNIQUE INDEX IF NOT EXISTS idx_path"
                                 " ON album_table (path);";
-    query.exec(createUniqueIndex);
+    query.exec(createIndex);
+    if (query.lastError().text().size() > 1) {
+        qDebug() << "Create DB error: " << query.lastError().text();
+    }
+
+    createIndex = "CREATE INDEX IF NOT EXISTS idx_genre"
+                                " ON album_table (genre);";
+    query.exec(createIndex);
+    if (query.lastError().text().size() > 1) {
+        qDebug() << "Create DB error: " << query.lastError().text();
+    }
+
+    createIndex = "CREATE INDEX IF NOT EXISTS idx_artist"
+                                " ON album_table (artist);";
+    query.exec(createIndex);
     if (query.lastError().text().size() > 1) {
         qDebug() << "Create DB error: " << query.lastError().text();
     }
