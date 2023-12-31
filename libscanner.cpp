@@ -16,7 +16,7 @@ void LibScanner::run()
 {
     int progress = 0;
     if (dbModule == nullptr)
-        dbModule = new DbModule();
+        dbModule = new DbModule("sql_scanner");
     QDir dir(pathToLib);
     scanRecursive(dir);
     emit progressIsInit(findResult.count());
@@ -51,10 +51,12 @@ void LibScanner::scanRecursive(const QDir &dir)
 void LibScanner::writeToDB(QString filePath)
 {
     tagsReader->readInfoFromFile(filePath);
-    dbModule->insertData(tagsReader->getArtist(),
-                        tagsReader->getAlbum(),
-                        tagsReader->getTitle(),
-                        tagsReader->getGenre(),
-                        filePath,
-                        tagsReader->getDuration());
+    if (tagsReader->getDuration() > 0) {
+        dbModule->insertData(tagsReader->getArtist(),
+                            tagsReader->getAlbum(),
+                            tagsReader->getTitle(),
+                            tagsReader->getGenre(),
+                            filePath,
+                            tagsReader->getDuration());
+    }
 }

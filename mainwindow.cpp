@@ -9,6 +9,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     setWindowState(Qt::WindowMaximized);
+    initMainMenu();
     ui->sliderPlayProgress->setMinimum(0);
     ui->sliderVolume->setMinimum(0);
     ui->sliderVolume->setMaximum(100);
@@ -34,13 +35,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     statusBarLabel->setMaximumWidth(this->width() - 300);
 
-    dbModule = new DbModule();
+    dbModule = new DbModule("sql_main");
 
     // Scan music library
 
-    appSettings->setLibraryPath("/mnt/BIG_GEEK/Music"); // TODO: set path to lib from Options dialog
-
-    if (!appSettings->isScanHasBeenFinished()) {
+    if (libScanner == nullptr && !appSettings->isScanHasBeenFinished()) {
+        lockPlayerControls(true);
         libScanner = new LibScanner(appSettings->getLibraryPath());
         connect(libScanner, SIGNAL(scanOnProgress(QString, int)), this, SLOT(showScanProgress(QString, int)));
         connect(libScanner, SIGNAL(scanCompleted()), this, SLOT(scanFinished()));
@@ -66,7 +66,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->btnPlay, SIGNAL(clicked()), this, SLOT(play()));
     connect(ui->btnStop, SIGNAL(clicked()), this, SLOT(stop()));
     connect(ui->sliderVolume, SIGNAL(sliderReleased()), this, SLOT(sliderVolumeReleasedByUser()));
+
     connect(ui->sliderPlayProgress, SIGNAL(sliderReleased()), this, SLOT(sliderProgressReleasedByUser()));
+    connect(ui->sliderPlayProgress, SIGNAL(sliderMoved(int)), this, SLOT(showSliderTime(int)));
 
     initGenreTableView();
     initArtistsTableView();
@@ -106,14 +108,14 @@ void MainWindow::selectPlaylist(QString genre, QString artist)
 {
     selectionPlaylistChanged = true;
     ui->tableViewPlaylist->setModel(dbModule->getPlaylist(genre, artist));
-    ui->tableViewPlaylist->setColumnHidden(0, true);
-    ui->tableViewPlaylist->setColumnHidden(2, true);
-    ui->tableViewPlaylist->setColumnHidden(5, true);
-    ui->tableViewPlaylist->setColumnWidth(1, 250);
-    ui->tableViewPlaylist->setColumnWidth(2, 250);
-    ui->tableViewPlaylist->setColumnWidth(3, 300);
-    ui->tableViewPlaylist->setColumnWidth(4, 250);
-    ui->tableViewPlaylist->setColumnWidth(6, 124);
+    ui->tableViewPlaylist->setColumnHidden(COLUMN_ID, true);
+    ui->tableViewPlaylist->setColumnHidden(COLUMN_ALBUM, true);
+    ui->tableViewPlaylist->setColumnHidden(COLUMN_PATH, true);
+    ui->tableViewPlaylist->setColumnWidth(COLUMN_ARTIST, 250);
+    ui->tableViewPlaylist->setColumnWidth(COLUMN_ALBUM, 250);
+    ui->tableViewPlaylist->setColumnWidth(COLUMN_TITLE, 300);
+    ui->tableViewPlaylist->setColumnWidth(COLUMN_GENRE, 250);
+    ui->tableViewPlaylist->setColumnWidth(COLUMN_RATING, 124);
     ui->tableViewPlaylist->show();
 }
 
@@ -153,10 +155,57 @@ void MainWindow::initPlaylistTableView(QString genre, QString artist)
             Qt::UniqueConnection);
 }
 
+void MainWindow::initMainMenu()
+{
+    connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(menuAboutDialog()));
+    connect(ui->actionSettings, SIGNAL(triggered()), this, SLOT(menuSettingsDialog()));
+    connect(ui->actionRescanMusicFolder, SIGNAL(triggered()), this, SLOT(startRescanLibrary()));
+    connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(menuExit()));
+
+    // ratings submenu
+    connect(ui->actionNoRating, SIGNAL(triggered()), this, SLOT(menuSetRating()));
+    connect(ui->actionRating1, SIGNAL(triggered()), this, SLOT(menuSetRating()));
+    connect(ui->actionRating2, SIGNAL(triggered()), this, SLOT(menuSetRating()));
+    connect(ui->actionRating3, SIGNAL(triggered()), this, SLOT(menuSetRating()));
+    connect(ui->actionRating4, SIGNAL(triggered()), this, SLOT(menuSetRating()));
+    connect(ui->actionRating5, SIGNAL(triggered()), this, SLOT(menuSetRating()));
+
+    ui->actionNoRating->setData(QVariant(0));
+    ui->actionRating1->setData(QVariant(1));
+    ui->actionRating2->setData(QVariant(2));
+    ui->actionRating3->setData(QVariant(3));
+    ui->actionRating4->setData(QVariant(4));
+    ui->actionRating5->setData(QVariant(5));
+}
+
 void MainWindow::setArtistAndTitleLabels(QString artist, QString title)
 {
     ui->labelArtist->setText(artist);
     ui->labelTitle->setText(title);
+}
+
+void MainWindow::lockPlayerControls(bool lock)
+{
+    ui->btnPlay->setEnabled(!lock);
+    ui->btnPlayPause->setEnabled(!lock);
+    ui->btnStop->setEnabled(!lock);
+    ui->sliderPlayProgress->setEnabled(!lock);
+    ui->actionRescanMusicFolder->setEnabled(!lock);
+    ui->tableViewGenre->setEnabled(!lock);
+    ui->tableViewArtist->setEnabled(!lock);
+    ui->tableViewPlaylist->setEnabled(!lock);
+}
+
+void MainWindow::startRescanLibrary()
+{
+    if (libScanner == nullptr) {
+        lockPlayerControls(true);
+        libScanner = new LibScanner(appSettings->getLibraryPath(), true);
+        connect(libScanner, SIGNAL(scanOnProgress(QString, int)), this, SLOT(showScanProgress(QString, int)));
+        connect(libScanner, SIGNAL(scanCompleted()), this, SLOT(scanFinished()));
+        connect(libScanner, SIGNAL(progressIsInit(uint)), this, SLOT(setupProgress(uint)));
+        libScanner->start();
+    }
 }
 
 void MainWindow::tooglePlayPause()
@@ -229,6 +278,21 @@ void MainWindow::scanFinished()
     appSettings->setScanCompleted(true);
     statusBarLabel->clear();
     statusProgressBar->setVisible(false);
+    if (libScanner != nullptr) {
+        delete libScanner;
+        libScanner = nullptr;
+    }
+    selectGenres();
+    selectArtists();
+    selectPlaylist();
+//    if (dbModule != nullptr) {
+//        delete dbModule;
+//        dbModule = new DbModule("q");
+//        initGenreTableView();
+//        initArtistsTableView();
+//        initPlaylistTableView();
+//    }
+    lockPlayerControls(false);
 }
 
 void MainWindow::sliderProgressReleasedByUser()
@@ -259,4 +323,48 @@ void MainWindow::playlistDoubleClicked(const QModelIndex &current)
     playManager->stop();
     currentPlayListItem = dbModule->getPlayListItem(current.row());
     play();
+}
+
+void MainWindow::showSliderTime(int value)
+{
+    QPoint globalPos = ui->sliderPlayProgress->mapToGlobal(ui->sliderPlayProgress->rect().topLeft());
+    QToolTip::showText(QPoint(QCursor::pos().x() - 54, globalPos.y() - 56),
+                       QDateTime::fromTime_t(value).toUTC().toString("hh:mm:ss"),
+                       nullptr);
+}
+
+void MainWindow::menuSettingsDialog()
+{
+    SettingsDialog *dialog = new SettingsDialog(this);
+    dialog->setLibraryPath(appSettings->getLibraryPath());
+    if (dialog->exec() == QDialog::Accepted) {
+        if (appSettings->setLibraryPath(dialog->getLibraryPath())) {
+            startRescanLibrary();
+        }
+    }
+    delete dialog;
+}
+
+void MainWindow::menuAboutDialog()
+{
+    AboutDialog *dialog = new AboutDialog(this);
+    dialog->exec();
+    delete dialog;
+}
+
+void MainWindow::menuExit()
+{
+    close();
+}
+
+void MainWindow::menuExitAndStopServer()
+{
+
+}
+
+void MainWindow::menuSetRating()
+{
+    QAction *sender = (QAction*) QObject::sender();
+    dbModule->updateRating(currentPlayListItem.id, sender->data().toUInt());
+    selectPlaylist(selectedGenre, selectedArtist);
 }

@@ -4,11 +4,12 @@
 #include <QString>
 
 struct PlaylistItem {
+    uint id;
     QString artist;
     QString title;
     QString path;
     uint time;
-    int row;
+    uint row;
 };
 
 #endif // PLAYLISTITEM_H

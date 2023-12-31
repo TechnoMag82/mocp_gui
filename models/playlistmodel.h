@@ -5,6 +5,7 @@
 #include <QPixmap>
 #include <QPainter>
 #include <QTime>
+#include <QDebug>
 
 #include "utils.cpp"
 

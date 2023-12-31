@@ -13,7 +13,7 @@
 class DbModule
 {
     public:
-        DbModule();
+        DbModule(QString connectionName);
         ~DbModule();
 
         void insertData(
@@ -29,6 +29,7 @@ class DbModule
         QString getSelectedGenre(int row);
         QString getSelectedArtist(int row);
         PlaylistItem getPlayListItem(int row);
+        void updateRating(uint id, uint rating);
 
         PlaylistModel * getPlaylist(QString genre = "", QString artist = "");
         QSqlQueryModel * getArtistsByGenre(QString genre = "");

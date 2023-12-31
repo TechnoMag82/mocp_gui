@@ -7,11 +7,17 @@
 #include <QLabel>
 #include <QProgressBar>
 #include <QItemSelectionModel>
+#include <QToolTip>
+#include <QAction>
 
 #include "dbmodule.h"
 #include "playmanager.h"
 #include "libscanner.h"
 #include "appsettingsmanager.h"
+#include "consts.h"
+
+#include "aboutdialog.h"
+#include "settingsdialog.h"
 
 #include "models/playlistitem.h"
 
@@ -54,7 +60,10 @@ class MainWindow : public QMainWindow
         void initGenreTableView();
         void initArtistsTableView(QString genre = "");
         void initPlaylistTableView(QString genre = "", QString artist = "");
+        void initMainMenu();
+
         void setArtistAndTitleLabels(QString artist, QString title);
+        void lockPlayerControls(bool lock);
 
     private slots:
         void tooglePlayPause();
@@ -77,5 +86,14 @@ class MainWindow : public QMainWindow
                     const QModelIndex &previous);
 
         void playlistDoubleClicked(const QModelIndex &current);
+
+        void showSliderTime(int value);
+        void startRescanLibrary();
+
+        void menuSettingsDialog();
+        void menuAboutDialog();
+        void menuExit();
+        void menuExitAndStopServer();
+        void menuSetRating();
 };
 #endif // MAINWINDOW_H

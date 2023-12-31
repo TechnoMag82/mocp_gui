@@ -1,11 +1,12 @@
 #include "dbmodule.h"
 
-DbModule::DbModule()
+DbModule::DbModule(QString connectionName)
 {
-    db = QSqlDatabase::addDatabase("QSQLITE");
+    db = QSqlDatabase::addDatabase("QSQLITE", connectionName);
     db.setDatabaseName("moc_gui.db");
+    db.exec("PRAGMA locking_mode = NORMAL");
     if (db.open()) {
-        qDebug() << "DB is Open";
+        qDebug() << "DB is Open: " << db.connectionName();
         createDB();
     }
 }
@@ -25,7 +26,7 @@ DbModule::~DbModule()
 
 void DbModule::insertData(QString artist, QString album, QString title, QString genre, QString path, uint duration)
 {
-    QSqlQuery insertQuery;
+    QSqlQuery insertQuery(db);
 
     insertQuery.prepare("INSERT INTO album_table (artist, album, title, genre, path, time)"
                   " VALUES (:artist, :album, :title, :genre, :path, :time);");
@@ -42,12 +43,15 @@ void DbModule::insertData(QString artist, QString album, QString title, QString 
     if (insertQuery.lastError().text().size() > 1) {
         qDebug() << "DB insert error: " << insertQuery.lastError().text();
     }
+    insertQuery.finish();
 }
 
 void DbModule::clearTable()
 {
-    QSqlQuery deleteQuery;
-    deleteQuery.exec("DELETE * FROM album_table;");
+    QSqlQuery deleteQuery(db);
+    deleteQuery.exec("DELETE FROM album_table;");
+    qDebug() << deleteQuery.lastError().text();
+    deleteQuery.finish();
 }
 
 QString DbModule::getSelectedGenre(int row)
@@ -70,15 +74,30 @@ PlaylistItem DbModule::getPlayListItem(int row)
     item.title = record.value("title").toString();
     item.path = record.value("path").toString();
     item.time = record.value("time").toUInt();
+    item.id = record.value("id").toUInt();
     item.row = row;
     return item;
+}
+
+void DbModule::updateRating(uint id, uint rating)
+{
+    QSqlQuery query(db);
+    query.prepare("UPDATE album_table SET rating=:rating WHERE id=:id;");
+    query.bindValue(":rating", rating);
+    query.bindValue(":id", id);
+    query.exec();
+
+    if (query.lastError().text().size() > 1) {
+        qDebug() << "DB insert error: " << query.lastError().text();
+    }
+    query.finish();
 }
 
 PlaylistModel *DbModule::getPlaylist(QString genre, QString artist)
 {
     if (modelPlaylist == nullptr);
         modelPlaylist = new PlaylistModel();
-    QSqlQuery query;
+    QSqlQuery query(db);
     if (genre.isEmpty() && artist.isEmpty()) {
         query.prepare("SELECT * FROM album_table");
     } else if (artist.isEmpty() && !genre.isEmpty()) {
@@ -104,7 +123,7 @@ QSqlQueryModel * DbModule::getArtistsByGenre(QString genre)
 {
     if (modelArtists == nullptr)
         modelArtists = new QSqlQueryModel();
-    QSqlQuery query;
+    QSqlQuery query(db);
     if (genre.isEmpty()) {
         query.prepare("SELECT DISTINCT artist FROM album_table ORDER BY artist;");
     } else {
@@ -124,14 +143,16 @@ QSqlQueryModel * DbModule::getGenres()
 {
     if (modelGenre == nullptr)
         modelGenre = new QSqlQueryModel();
-    modelGenre->setQuery("SELECT DISTINCT genre FROM album_table ORDER BY genre;");
+    QSqlQuery query(db);
+    query.exec("SELECT DISTINCT genre FROM album_table ORDER BY genre;");
+    modelGenre->setQuery(query);
     modelGenre->setHeaderData(0, Qt::Horizontal, "Genre");
     return modelGenre;
 }
 
 void DbModule::createDB()
 {
-    QSqlQuery query;
+    QSqlQuery query(db);
     QString createAlbum =  "CREATE TABLE IF NOT EXISTS album_table ("
                             "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
                             " artist TEXT,"
@@ -168,4 +189,5 @@ void DbModule::createDB()
     if (query.lastError().text().size() > 1) {
         qDebug() << "Create DB error: " << query.lastError().text();
     }
+    query.finish();
 }

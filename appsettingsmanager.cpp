@@ -14,7 +14,7 @@ bool AppSettingsManager::setLibraryPath(QString path)
 {
     QString oldPath = settings->value(KEY_LIBPATH, "").toString();
     settings->setValue(KEY_LIBPATH, path);
-    return oldPath == path;
+    return oldPath != path;
 }
 
 QString AppSettingsManager::getLibraryPath()

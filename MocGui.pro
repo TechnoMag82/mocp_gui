@@ -16,12 +16,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    aboutdialog.cpp \
     appsettingsmanager.cpp \
     dbmodule.cpp \
     libscanner.cpp \
     main.cpp \
     mainwindow.cpp \
     models/playlistmodel.cpp \
+    settingsdialog.cpp \
     tagsreader.cpp \
     mocp/client.c \
     mocp/common.c \
@@ -35,12 +37,15 @@ SOURCES += \
 
 
 HEADERS += \
+    aboutdialog.h \
     appsettingsmanager.h \
+    consts.h \
     dbmodule.h \
     libscanner.h \
     mainwindow.h \
     models/playlistitem.h \
     models/playlistmodel.h \
+    settingsdialog.h \
     tagsreader.h \
     mocp/client.h \
     mocp/protocol.h \
@@ -52,7 +57,9 @@ HEADERS += \
     playmanager.h
 
 FORMS += \
-    mainwindow.ui
+    aboutdialog.ui \
+    mainwindow.ui \
+    settingsdialog.ui
 
 LIBS += /usr/lib/x86_64-linux-gnu/libmediainfo.so
 

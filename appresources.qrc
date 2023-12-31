@@ -7,4 +7,9 @@
         <file>images/r4.png</file>
         <file>images/r5.png</file>
     </qresource>
+    <qresource prefix="/play">
+        <file>images/play.png</file>
+        <file>images/stop.png</file>
+        <file>images/pause.png</file>
+    </qresource>
 </RCC>
