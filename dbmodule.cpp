@@ -3,7 +3,7 @@
 DbModule::DbModule(QString connectionName)
 {
     db = QSqlDatabase::addDatabase("QSQLITE", connectionName);
-    db.setDatabaseName("moc_gui.db");
+    db.setDatabaseName( QDir::homePath() + PROGRAM_DIR + "/moc_gui.db");
     db.exec("PRAGMA locking_mode = NORMAL");
     if (db.open()) {
         qDebug() << "DB is Open: " << db.connectionName();
@@ -37,12 +37,21 @@ void DbModule::insertData(QString artist, QString album, QString title, QString 
     insertQuery.bindValue(":genre", genre);
     insertQuery.bindValue(":path", path);
     insertQuery.bindValue(":time", duration);
-
     insertQuery.exec();
 
     if (insertQuery.lastError().text().size() > 1) {
-        qDebug() << "DB insert error: " << insertQuery.lastError().text();
+        qDebug() << "album_table insert error: " << insertQuery.lastError().text();
     }
+
+    insertQuery.prepare("INSERT INTO rating_table (path)"
+                  " VALUES (:path);");
+    insertQuery.bindValue(":path", path);
+    insertQuery.exec();
+
+    if (insertQuery.lastError().text().size() > 1) {
+        qDebug() << "rating_table insert error: " << insertQuery.lastError().text();
+    }
+
     insertQuery.finish();
 }
 
@@ -79,16 +88,31 @@ PlaylistItem DbModule::getPlayListItem(int row)
     return item;
 }
 
-void DbModule::updateRating(uint id, uint rating)
+void DbModule::updateRating(QString path, uint rating)
 {
     QSqlQuery query(db);
-    query.prepare("UPDATE album_table SET rating=:rating WHERE id=:id;");
+    query.prepare("UPDATE rating_table SET rating=:rating WHERE path=:path;");
     query.bindValue(":rating", rating);
-    query.bindValue(":id", id);
+    query.bindValue(":path", path);
     query.exec();
 
     if (query.lastError().text().size() > 1) {
-        qDebug() << "DB insert error: " << query.lastError().text();
+        qDebug() << "Update rating error: " << query.lastError().text();
+    }
+    query.finish();
+}
+
+void DbModule::updatePlayCount(QString path)
+{
+    QSqlQuery query(db);
+    query.prepare("UPDATE rating_table"
+                  " SET playcount=((SELECT playcount FROM rating_table WHERE path=:path) + 1)"
+                  " WHERE path=:path;");
+    query.bindValue(":path", path);
+    query.exec();
+
+    if (query.lastError().text().size() > 1) {
+        qDebug() << "update playcount error: " << query.lastError().text();
     }
     query.finish();
 }
@@ -99,15 +123,15 @@ PlaylistModel *DbModule::getPlaylist(QString genre, QString artist)
         modelPlaylist = new PlaylistModel();
     QSqlQuery query(db);
     if (genre.isEmpty() && artist.isEmpty()) {
-        query.prepare("SELECT * FROM album_table");
+        query.prepare(basePlayListSelection);
     } else if (artist.isEmpty() && !genre.isEmpty()) {
-        query.prepare("SELECT * FROM album_table WHERE genre=:strgenre");
+        query.prepare(basePlayListSelection + "WHERE genre=:strgenre");
         query.bindValue(":strgenre", genre);
     } else if (!artist.isEmpty() && genre.isEmpty()) {
-        query.prepare("SELECT * FROM album_table WHERE artist=:strartist");
+        query.prepare(basePlayListSelection + "WHERE artist=:strartist");
         query.bindValue(":strartist", artist);
     } else if (!artist.isEmpty() && !genre.isEmpty()) {
-        query.prepare("SELECT * FROM album_table WHERE artist=:strartist AND genre=:strgenre");
+        query.prepare(basePlayListSelection + "WHERE artist=:strartist AND genre=:strgenre");
         query.bindValue(":strartist", artist);
         query.bindValue(":strgenre", genre);
     }
@@ -160,34 +184,51 @@ void DbModule::createDB()
                             " title TEXT,"
                             " genre TEXT,"
                             " path TEXT NOT NULL,"
-                            " rating INTEGER NOT NULL DEFAULT 0,"
-                            " playcount INTEGER NOT NULL DEFAULT 0,"
                             " time INTEGER NOT NULL DEFAULT 0"
                            ");";
     query.exec(createAlbum);
     if (query.lastError().text().size() > 1) {
-        qDebug() << "Create DB error: " << query.lastError().text();
+        qDebug() << "Create album_table error: " << query.lastError().text();
     }
 
     QString createIndex = "CREATE UNIQUE INDEX IF NOT EXISTS idx_path"
                                 " ON album_table (path);";
     query.exec(createIndex);
     if (query.lastError().text().size() > 1) {
-        qDebug() << "Create DB error: " << query.lastError().text();
+        qDebug() << "Create idx_path error: " << query.lastError().text();
     }
 
     createIndex = "CREATE INDEX IF NOT EXISTS idx_genre"
                                 " ON album_table (genre);";
     query.exec(createIndex);
     if (query.lastError().text().size() > 1) {
-        qDebug() << "Create DB error: " << query.lastError().text();
+        qDebug() << "Create idx_genre error: " << query.lastError().text();
     }
 
     createIndex = "CREATE INDEX IF NOT EXISTS idx_artist"
                                 " ON album_table (artist);";
     query.exec(createIndex);
     if (query.lastError().text().size() > 1) {
-        qDebug() << "Create DB error: " << query.lastError().text();
+        qDebug() << "Create idx_artist error: " << query.lastError().text();
     }
+
+    QString createRating = "CREATE TABLE IF NOT EXISTS rating_table ("
+                            " id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
+                            " path TEXT NOT NULL,"
+                            " rating INTEGER NOT NULL DEFAULT 0,"
+                            " playcount INTEGER NOT NULL DEFAULT 0"
+                           ");";
+    query.exec(createRating);
+    if (query.lastError().text().size() > 1) {
+        qDebug() << "Create rating_table error: " << query.lastError().text();
+    }
+
+    createIndex = "CREATE UNIQUE INDEX IF NOT EXISTS idx_ratepath"
+                                " ON rating_table (path);";
+    query.exec(createIndex);
+    if (query.lastError().text().size() > 1) {
+        qDebug() << "Create idx_ratepath error: " << query.lastError().text();
+    }
+
     query.finish();
 }

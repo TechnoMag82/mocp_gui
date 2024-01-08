@@ -35,6 +35,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     statusBarLabel->setMaximumWidth(this->width() - 300);
 
+    createDbPath();
     dbModule = new DbModule("sql_main");
 
     // Scan music library
@@ -196,6 +197,15 @@ void MainWindow::lockPlayerControls(bool lock)
     ui->tableViewPlaylist->setEnabled(!lock);
 }
 
+void MainWindow::createDbPath()
+{
+    QString homeDir = QDir::homePath();
+    QDir dir(homeDir);
+    if (!dir.exists(homeDir + PROGRAM_DIR)) {
+        dir.mkdir(homeDir + PROGRAM_DIR);
+    }
+}
+
 void MainWindow::startRescanLibrary()
 {
     if (libScanner == nullptr) {
@@ -231,6 +241,7 @@ void MainWindow::stop()
 void MainWindow::playNext()
 {
     if (currentPlayListItem.row + 1 < ui->tableViewPlaylist->model()->rowCount()) {
+        dbModule->updatePlayCount(currentPlayListItem.path);
         currentPlayListItem = dbModule->getPlayListItem(currentPlayListItem.row + 1);
         ui->tableViewPlaylist->selectRow(currentPlayListItem.row);
         playManager->stop();
@@ -285,13 +296,6 @@ void MainWindow::scanFinished()
     selectGenres();
     selectArtists();
     selectPlaylist();
-//    if (dbModule != nullptr) {
-//        delete dbModule;
-//        dbModule = new DbModule("q");
-//        initGenreTableView();
-//        initArtistsTableView();
-//        initPlaylistTableView();
-//    }
     lockPlayerControls(false);
 }
 
@@ -365,6 +369,6 @@ void MainWindow::menuExitAndStopServer()
 void MainWindow::menuSetRating()
 {
     QAction *sender = (QAction*) QObject::sender();
-    dbModule->updateRating(currentPlayListItem.id, sender->data().toUInt());
+    dbModule->updateRating(currentPlayListItem.path, sender->data().toUInt());
     selectPlaylist(selectedGenre, selectedArtist);
 }

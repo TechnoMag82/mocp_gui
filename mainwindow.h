@@ -64,6 +64,7 @@ class MainWindow : public QMainWindow
 
         void setArtistAndTitleLabels(QString artist, QString title);
         void lockPlayerControls(bool lock);
+        void createDbPath();
 
     private slots:
         void tooglePlayPause();
