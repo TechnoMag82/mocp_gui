@@ -8,6 +8,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    setWindowIcon(QIcon(":/common/images/main_icon.png"));
     setWindowState(Qt::WindowMaximized);
     initMainMenu();
     ui->sliderPlayProgress->setMinimum(0);
@@ -162,6 +163,7 @@ void MainWindow::initMainMenu()
     connect(ui->actionSettings, SIGNAL(triggered()), this, SLOT(menuSettingsDialog()));
     connect(ui->actionRescanMusicFolder, SIGNAL(triggered()), this, SLOT(startRescanLibrary()));
     connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(menuExit()));
+    connect(ui->actionExitAndStopServer, SIGNAL(triggered()), this, SLOT(menuExitAndStopServer()));
 
     // ratings submenu
     connect(ui->actionNoRating, SIGNAL(triggered()), this, SLOT(menuSetRating()));
@@ -363,7 +365,8 @@ void MainWindow::menuExit()
 
 void MainWindow::menuExitAndStopServer()
 {
-
+    playManager->stopServer();
+    close();
 }
 
 void MainWindow::menuSetRating()

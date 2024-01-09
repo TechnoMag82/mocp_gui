@@ -12,4 +12,8 @@
         <file>images/stop.png</file>
         <file>images/pause.png</file>
     </qresource>
+    <qresource prefix="/common">
+        <file>images/player_logo.png</file>
+        <file>images/main_icon.png</file>
+    </qresource>
 </RCC>
