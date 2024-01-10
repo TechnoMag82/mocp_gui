@@ -19,9 +19,9 @@ QVariant PlaylistModel::data(const QModelIndex &index, int role) const
     }
     if (role == Qt::BackgroundRole) {
         if (index.row() % 2 ==0) {
-            return QVariant(QBrush(QColor(230, 230, 230)));
+            return QVariant(QBrush(QColor(230, 230, 230, 100)));
         } else {
-            return QSqlQueryModel::data(index, role);
+            return QVariant(QBrush(QColor(255, 255, 255, 100)));
         }
     }
     if (index.column() == 8) {

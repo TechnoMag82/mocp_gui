@@ -18,6 +18,7 @@
 
 #include "aboutdialog.h"
 #include "settingsdialog.h"
+#include "views/playlisttableview.h"
 
 #include "models/playlistitem.h"
 
@@ -43,6 +44,7 @@ class MainWindow : public QMainWindow
         QLabel *statusBarLabel = nullptr;
         QProgressBar *statusProgressBar = nullptr;
         QThread thread;
+        PlayListTableView *tableViewPlaylist = nullptr;
 
         QItemSelectionModel *selectionModelTableViewGenre = nullptr;
         QItemSelectionModel *selectionModelTableViewArtists = nullptr;
@@ -61,6 +63,7 @@ class MainWindow : public QMainWindow
         void initArtistsTableView(QString genre = "");
         void initPlaylistTableView(QString genre = "", QString artist = "");
         void initMainMenu();
+        void iniPlaylistUI();
 
         void setArtistAndTitleLabels(QString artist, QString title);
         void lockPlayerControls(bool lock);

@@ -4,8 +4,8 @@ DbModule::DbModule(QString connectionName)
 {
     db = QSqlDatabase::addDatabase("QSQLITE", connectionName);
     db.setDatabaseName( QDir::homePath() + PROGRAM_DIR + "/moc_gui.db");
-    db.exec("PRAGMA locking_mode = NORMAL");
     if (db.open()) {
+        db.exec("PRAGMA locking_mode = NORMAL");
         qDebug() << "DB is Open: " << db.connectionName();
         createDB();
     }
@@ -22,44 +22,53 @@ DbModule::~DbModule()
         delete modelGenre;
     if (modelPlaylist != nullptr)
         delete modelPlaylist;
+    if (genresQuery != nullptr)
+        delete genresQuery;
+    if (artistsQuery != nullptr)
+        delete artistsQuery;
+    if (playlistQuery != nullptr)
+        delete playlistQuery;
+    if (insertQuery != nullptr)
+        delete insertQuery;
 }
 
 void DbModule::insertData(QString artist, QString album, QString title, QString genre, QString path, uint duration)
 {
-    QSqlQuery insertQuery(db);
+    if (insertQuery == nullptr)
+        insertQuery = new QSqlQuery(db);
 
-    insertQuery.prepare("INSERT INTO album_table (artist, album, title, genre, path, time)"
+    insertQuery->prepare("INSERT INTO album_table (artist, album, title, genre, path, time)"
                   " VALUES (:artist, :album, :title, :genre, :path, :time);");
 
-    insertQuery.bindValue(":artist", artist);
-    insertQuery.bindValue(":album", album);
-    insertQuery.bindValue(":title", title);
-    insertQuery.bindValue(":genre", genre);
-    insertQuery.bindValue(":path", path);
-    insertQuery.bindValue(":time", duration);
-    insertQuery.exec();
+    insertQuery->bindValue(":artist", artist);
+    insertQuery->bindValue(":album", album);
+    insertQuery->bindValue(":title", title);
+    insertQuery->bindValue(":genre", genre);
+    insertQuery->bindValue(":path", path);
+    insertQuery->bindValue(":time", duration);
+    insertQuery->exec();
 
-    if (insertQuery.lastError().text().size() > 1) {
-        qDebug() << "album_table insert error: " << insertQuery.lastError().text();
+    if (insertQuery->lastError().text().size() > 1) {
+        qDebug() << "album_table insert error: " << insertQuery->lastError().text();
     }
 
-    insertQuery.prepare("INSERT INTO rating_table (path)"
+    insertQuery->prepare("INSERT INTO rating_table (path)"
                   " VALUES (:path);");
-    insertQuery.bindValue(":path", path);
-    insertQuery.exec();
+    insertQuery->bindValue(":path", path);
+    insertQuery->exec();
 
-    if (insertQuery.lastError().text().size() > 1) {
-        qDebug() << "rating_table insert error: " << insertQuery.lastError().text();
+    if (insertQuery->lastError().text().size() > 1) {
+        qDebug() << "rating_table insert error: " << insertQuery->lastError().text();
     }
 
-    insertQuery.finish();
+    insertQuery->finish();
 }
 
 void DbModule::clearTable()
 {
     QSqlQuery deleteQuery(db);
     deleteQuery.exec("DELETE FROM album_table;");
-    qDebug() << deleteQuery.lastError().text();
+    qDebug() << "Clear table error: " << deleteQuery.lastError().text();
     deleteQuery.finish();
 }
 
@@ -121,22 +130,23 @@ PlaylistModel *DbModule::getPlaylist(QString genre, QString artist)
 {
     if (modelPlaylist == nullptr);
         modelPlaylist = new PlaylistModel();
-    QSqlQuery query(db);
+    if (playlistQuery == nullptr)
+        playlistQuery = new QSqlQuery(db);
     if (genre.isEmpty() && artist.isEmpty()) {
-        query.prepare(basePlayListSelection);
+        playlistQuery->prepare(basePlayListSelection);
     } else if (artist.isEmpty() && !genre.isEmpty()) {
-        query.prepare(basePlayListSelection + "WHERE genre=:strgenre");
-        query.bindValue(":strgenre", genre);
+        playlistQuery->prepare(basePlayListSelection + "WHERE genre=:strgenre");
+        playlistQuery->bindValue(":strgenre", genre);
     } else if (!artist.isEmpty() && genre.isEmpty()) {
-        query.prepare(basePlayListSelection + "WHERE artist=:strartist");
-        query.bindValue(":strartist", artist);
+        playlistQuery->prepare(basePlayListSelection + "WHERE artist=:strartist");
+        playlistQuery->bindValue(":strartist", artist);
     } else if (!artist.isEmpty() && !genre.isEmpty()) {
-        query.prepare(basePlayListSelection + "WHERE artist=:strartist AND genre=:strgenre");
-        query.bindValue(":strartist", artist);
-        query.bindValue(":strgenre", genre);
+        playlistQuery->prepare(basePlayListSelection + "WHERE artist=:strartist AND genre=:strgenre");
+        playlistQuery->bindValue(":strartist", artist);
+        playlistQuery->bindValue(":strgenre", genre);
     }
-    query.exec();
-    modelPlaylist->setQuery(query);
+    playlistQuery->exec();
+    modelPlaylist->setQuery(*playlistQuery);
     if (modelPlaylist->lastError().isValid()) {
         qDebug() << modelPlaylist->lastError().text();
     }
@@ -147,15 +157,16 @@ QSqlQueryModel * DbModule::getArtistsByGenre(QString genre)
 {
     if (modelArtists == nullptr)
         modelArtists = new QSqlQueryModel();
-    QSqlQuery query(db);
+    if (artistsQuery == nullptr)
+        artistsQuery = new QSqlQuery(db);
     if (genre.isEmpty()) {
-        query.prepare("SELECT DISTINCT artist FROM album_table ORDER BY artist;");
+        artistsQuery->prepare("SELECT DISTINCT artist FROM album_table ORDER BY artist;");
     } else {
-        query.prepare("SELECT DISTINCT artist FROM album_table WHERE genre=:strgenre ORDER BY artist;");
-        query.bindValue(":strgenre", genre);
+        artistsQuery->prepare("SELECT DISTINCT artist FROM album_table WHERE genre=:strgenre ORDER BY artist;");
+        artistsQuery->bindValue(":strgenre", genre);
     }
-    query.exec();
-    modelArtists->setQuery(query);
+    artistsQuery->exec();
+    modelArtists->setQuery(*artistsQuery);
     if (modelArtists->lastError().isValid()) {
         qDebug() << modelArtists->lastError().text();
     }
@@ -167,11 +178,19 @@ QSqlQueryModel * DbModule::getGenres()
 {
     if (modelGenre == nullptr)
         modelGenre = new QSqlQueryModel();
-    QSqlQuery query(db);
-    query.exec("SELECT DISTINCT genre FROM album_table ORDER BY genre;");
-    modelGenre->setQuery(query);
+    if (genresQuery == nullptr);
+        genresQuery = new QSqlQuery(db);
+    genresQuery->exec("SELECT DISTINCT genre FROM album_table ORDER BY genre;");
+    modelGenre->setQuery(*genresQuery);
     modelGenre->setHeaderData(0, Qt::Horizontal, "Genre");
     return modelGenre;
+}
+
+void DbModule::finshTableQueries()
+{
+    genresQuery->finish();
+    artistsQuery->finish();
+    playlistQuery->finish();
 }
 
 void DbModule::createDB()

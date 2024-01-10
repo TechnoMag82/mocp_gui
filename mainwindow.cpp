@@ -8,6 +8,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    iniPlaylistUI();
     setWindowIcon(QIcon(":/common/images/main_icon.png"));
     setWindowState(Qt::WindowMaximized);
     initMainMenu();
@@ -18,7 +19,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tableViewGenre->verticalHeader()->hide();
     ui->tableViewArtist->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->tableViewArtist->verticalHeader()->hide();
-    ui->tableViewPlaylist->verticalHeader()->hide();
+    tableViewPlaylist->verticalHeader()->hide();
 
     // Init app settings
 
@@ -39,16 +40,7 @@ MainWindow::MainWindow(QWidget *parent)
     createDbPath();
     dbModule = new DbModule("sql_main");
 
-    // Scan music library
 
-    if (libScanner == nullptr && !appSettings->isScanHasBeenFinished()) {
-        lockPlayerControls(true);
-        libScanner = new LibScanner(appSettings->getLibraryPath());
-        connect(libScanner, SIGNAL(scanOnProgress(QString, int)), this, SLOT(showScanProgress(QString, int)));
-        connect(libScanner, SIGNAL(scanCompleted()), this, SLOT(scanFinished()));
-        connect(libScanner, SIGNAL(progressIsInit(uint)), this, SLOT(setupProgress(uint)));
-        libScanner->start();
-    }
 
     // Init playing
 
@@ -75,6 +67,18 @@ MainWindow::MainWindow(QWidget *parent)
     initGenreTableView();
     initArtistsTableView();
     initPlaylistTableView();
+
+    // Scan music library
+
+    if (libScanner == nullptr && !appSettings->isScanHasBeenFinished()) {
+        dbModule->finshTableQueries();
+        lockPlayerControls(true);
+        libScanner = new LibScanner(appSettings->getLibraryPath());
+        connect(libScanner, SIGNAL(scanOnProgress(QString, int)), this, SLOT(showScanProgress(QString, int)));
+        connect(libScanner, SIGNAL(scanCompleted()), this, SLOT(scanFinished()));
+        connect(libScanner, SIGNAL(progressIsInit(uint)), this, SLOT(setupProgress(uint)));
+        libScanner->start();
+    }
 }
 
 MainWindow::~MainWindow()
@@ -109,16 +113,16 @@ void MainWindow::selectArtists(QString genre)
 void MainWindow::selectPlaylist(QString genre, QString artist)
 {
     selectionPlaylistChanged = true;
-    ui->tableViewPlaylist->setModel(dbModule->getPlaylist(genre, artist));
-    ui->tableViewPlaylist->setColumnHidden(COLUMN_ID, true);
-    ui->tableViewPlaylist->setColumnHidden(COLUMN_ALBUM, true);
-    ui->tableViewPlaylist->setColumnHidden(COLUMN_PATH, true);
-    ui->tableViewPlaylist->setColumnWidth(COLUMN_ARTIST, 250);
-    ui->tableViewPlaylist->setColumnWidth(COLUMN_ALBUM, 250);
-    ui->tableViewPlaylist->setColumnWidth(COLUMN_TITLE, 300);
-    ui->tableViewPlaylist->setColumnWidth(COLUMN_GENRE, 250);
-    ui->tableViewPlaylist->setColumnWidth(COLUMN_RATING, 124);
-    ui->tableViewPlaylist->show();
+    tableViewPlaylist->setModel(dbModule->getPlaylist(genre, artist));
+    tableViewPlaylist->setColumnHidden(COLUMN_ID, true);
+    tableViewPlaylist->setColumnHidden(COLUMN_ALBUM, true);
+    tableViewPlaylist->setColumnHidden(COLUMN_PATH, true);
+    tableViewPlaylist->setColumnWidth(COLUMN_ARTIST, 250);
+    tableViewPlaylist->setColumnWidth(COLUMN_ALBUM, 250);
+    tableViewPlaylist->setColumnWidth(COLUMN_TITLE, 300);
+    tableViewPlaylist->setColumnWidth(COLUMN_GENRE, 250);
+    tableViewPlaylist->setColumnWidth(COLUMN_RATING, 124);
+    tableViewPlaylist->show();
 }
 
 void MainWindow::initGenreTableView()
@@ -150,7 +154,7 @@ void MainWindow::initArtistsTableView(QString genre)
 void MainWindow::initPlaylistTableView(QString genre, QString artist)
 {
     selectPlaylist(selectedGenre, selectedArtist);
-    connect(ui->tableViewPlaylist,
+    connect(tableViewPlaylist,
             SIGNAL(doubleClicked(const QModelIndex &)),
             this,
             SLOT(playlistDoubleClicked(const QModelIndex &)),
@@ -181,6 +185,22 @@ void MainWindow::initMainMenu()
     ui->actionRating5->setData(QVariant(5));
 }
 
+void MainWindow::iniPlaylistUI()
+{
+    tableViewPlaylist = new PlayListTableView(ui->centralwidget);
+    tableViewPlaylist->setImage(":/common/images/playlist_background.jpg");
+    tableViewPlaylist->setObjectName(QString::fromUtf8("tableViewPlaylist"));
+    tableViewPlaylist->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    tableViewPlaylist->setDragDropOverwriteMode(false);
+    tableViewPlaylist->setSelectionMode(QAbstractItemView::SingleSelection);
+    tableViewPlaylist->setSelectionBehavior(QAbstractItemView::SelectRows);
+    tableViewPlaylist->setShowGrid(false);
+    tableViewPlaylist->setWordWrap(false);
+    tableViewPlaylist->setCornerButtonEnabled(false);
+
+    ui->horizontalLayout_2->addWidget(tableViewPlaylist);
+}
+
 void MainWindow::setArtistAndTitleLabels(QString artist, QString title)
 {
     ui->labelArtist->setText(artist);
@@ -196,7 +216,7 @@ void MainWindow::lockPlayerControls(bool lock)
     ui->actionRescanMusicFolder->setEnabled(!lock);
     ui->tableViewGenre->setEnabled(!lock);
     ui->tableViewArtist->setEnabled(!lock);
-    ui->tableViewPlaylist->setEnabled(!lock);
+    tableViewPlaylist->setEnabled(!lock);
 }
 
 void MainWindow::createDbPath()
@@ -211,6 +231,7 @@ void MainWindow::createDbPath()
 void MainWindow::startRescanLibrary()
 {
     if (libScanner == nullptr) {
+        dbModule->finshTableQueries();
         lockPlayerControls(true);
         libScanner = new LibScanner(appSettings->getLibraryPath(), true);
         connect(libScanner, SIGNAL(scanOnProgress(QString, int)), this, SLOT(showScanProgress(QString, int)));
@@ -242,10 +263,10 @@ void MainWindow::stop()
 
 void MainWindow::playNext()
 {
-    if (currentPlayListItem.row + 1 < ui->tableViewPlaylist->model()->rowCount()) {
+    if (currentPlayListItem.row + 1 < tableViewPlaylist->model()->rowCount()) {
         dbModule->updatePlayCount(currentPlayListItem.path);
         currentPlayListItem = dbModule->getPlayListItem(currentPlayListItem.row + 1);
-        ui->tableViewPlaylist->selectRow(currentPlayListItem.row);
+        tableViewPlaylist->selectRow(currentPlayListItem.row);
         playManager->stop();
         play();
     }

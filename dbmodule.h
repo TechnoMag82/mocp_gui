@@ -37,12 +37,17 @@ class DbModule
         PlaylistModel * getPlaylist(QString genre = "", QString artist = "");
         QSqlQueryModel * getArtistsByGenre(QString genre = "");
         QSqlQueryModel * getGenres();
+        void finshTableQueries();
 
     private:
         QSqlDatabase db;
         QSqlQueryModel *modelGenre = nullptr;
         QSqlQueryModel *modelArtists = nullptr;
         PlaylistModel *modelPlaylist = nullptr;
+        QSqlQuery *genresQuery = nullptr;
+        QSqlQuery *artistsQuery = nullptr;
+        QSqlQuery *playlistQuery = nullptr;
+        QSqlQuery *insertQuery = nullptr;
 
         void createDB();
 

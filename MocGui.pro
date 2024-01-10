@@ -33,7 +33,8 @@ SOURCES += \
     mocp/options.c \
     mocp/playlist.c \
     playmanager.cpp \
-    utils.cpp
+    utils.cpp \
+    views/playlisttableview.cpp
 
 
 HEADERS += \
@@ -54,7 +55,8 @@ HEADERS += \
     mocp/options.h \
     mocp/lists.h \
     mocp/playlist.h \
-    playmanager.h
+    playmanager.h \
+    views/playlisttableview.h
 
 FORMS += \
     aboutdialog.ui \

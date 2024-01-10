@@ -15,5 +15,6 @@
     <qresource prefix="/common">
         <file>images/player_logo.png</file>
         <file>images/main_icon.png</file>
+        <file>images/playlist_background.jpg</file>
     </qresource>
 </RCC>
